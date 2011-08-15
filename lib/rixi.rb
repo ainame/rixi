@@ -13,7 +13,7 @@ class Rixi
     end
   end
   
-  attr_accessor :consumer_key, :consumer_secret, :redirect_uri, :access_token, :refresh_token, :expires_in, :refreshed_at
+  attr_accessor :consumer_key, :consumer_secret, :redirect_uri
 
   def initialize(params = { })
     @consumer_key    = params[:consumer_key]
@@ -38,9 +38,8 @@ class Rixi
   end
 
   def get_token(code)
-    @refreshed_at  = Time.now 
     @token = @client.auth_code.get_token(code,
-                                        {:redirect_uri => @redirect_uri})
+                                         {:redirect_uri => @redirect_uri})
   end
 
   def self.api_settings
