@@ -14,6 +14,7 @@ class Rixi
   end
   
   attr_accessor :consumer_key, :consumer_secret, :redirect_uri
+  attr_reader :token, :client
 
   def initialize(params = { })
     @consumer_key    = params[:consumer_key]
@@ -64,7 +65,6 @@ class Rixi
     if /%s/ =~ path
       define_method method_name do |*args|
         params = args.last.kind_of?(Hash) ? args.pop : { }
-        params.merge!({:oauth_token => @token.token})
         send http_method, path % args, params
       end
     else
@@ -78,23 +78,14 @@ class Rixi
   # これらのメソッドが呼ばれる
   def get(path, params = { })
     @token.refresh! if @token.expired?
-    parse_response(@token.get(path + '?' + parse_params(params)))
+    parse_response(@token.get( path, {:mode => :query,
+                   :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def post(path, params = { })
     @token.refresh! if @token.expired?
-    parse_response(@token.post(path, stringify_params(params)))
-  end
-
-  def parse_params(params = { })
-    params.map { |k, v| k.to_s + '=' + CGI.escape(v.to_s)}.join('&')
-  end
-
-  def stringify_params(params = { })
-    params.inject({ }) do |h, (k, v)|
-      h[k.to_s] = v.to_s
-      h
-    end
+    parse_response(@token.post( path, {:mode => :body,
+                  :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def parse_response(res)
