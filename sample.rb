@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 require 'oauth2'
 require 'sinatra'
-require 'sinatra/reloader'
 require 'yaml'
 require_relative 'lib/rixi'
 enable :sessions
 
 # コンシューマキーとシークレットを設定
+# 設定ファイルにyaml形式でconsumer_keyとか書いてる
 configure do
   config = YAML.load_file("setting.yml") 
   @@mixi = Rixi.new( :consumer_key => config['consumer_key'], 
