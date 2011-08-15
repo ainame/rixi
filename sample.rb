@@ -11,7 +11,6 @@ configure do
   config = YAML.load_file("setting.yml") 
   @@mixi = Rixi.new( :consumer_key => config['consumer_key'], 
                      :consumer_secret => config['consumer_secret'],
-                     :site => 'https://api.mixi-platform.com',
                      :redirect_uri => 'http://0.0.0.0:4567/callback',
                      :scope => "r_profile r_voice w_voice r_updates" )
 end
