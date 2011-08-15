@@ -1,4 +1,6 @@
 rixi is a mixi graph api's wrapper class in Ruby.
+rixi heavily inspired by "tumblife for ruby" and "rubytter".
+
 
 
 

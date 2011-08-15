@@ -4,7 +4,7 @@ require 'json'
 require 'hashie'
 require 'cgi'
 
-class Mixi
+class Rixi
   class APIError < StandardError
     attr_reader :response    
     def initialize(msg, response = nil)
@@ -99,12 +99,12 @@ class Mixi
   end
 
   def parse_response(res)
-    hashie = Hashie::Mash.new(res.response.env)
-    case hashie.status.to_i
+    res = res.response.env
+    case res[:status].to_i
     when 400...600
-      raise APIError.new(json.meta.msg, res)
+      raise APIError.new("API Error", res)
     else
-      JSON.parse(hashie.body)
+      JSON.parse(res[:body])
     end
   end
   
