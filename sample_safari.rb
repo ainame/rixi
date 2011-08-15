@@ -2,13 +2,37 @@
 require 'oauth2'
 require 'yaml'
 require_relative 'lib/rixi'
-#テスト用
-require 'safariwatir'
+require 'safariwatir' # WindowsやLinux環境では別のwatir等のgemを使う
 require 'open-uri'
+
+#
+# irbで各種メソッドを試したい時に使うツール
+# usage:
+# 1. Sinatra等で簡単にcallbackに指定するURLに対応するページを
+# 作成して起動しておく
+# --app.rb--
+# require 'sinatra'
+# get '/callback' do 
+#   "hoge"
+# end
+# ----------
+# $ ruby app.rb
+#
+# 2. 次にirbを立ち上げてこのファイルをloadする
+# $ irb
+# ruby-1.9.2-p180 :001 > load "sample_safari.rb" 
+#
+# 3.各種操作の実行が終わるまで暫く待つ。ブラウザ上に、
+# Sinatraのcallback画面表示されたらcodeが取得できる。
+# 
+# 4.irb上で定数の「M」にrixiのインスタンスが代入されているので
+# 定数Mを通して各種APIを叩くメソッドを試す。
+# 例：
+# ruby-1.9.2-p180 :002 > M.people "@me", "@self"
+#
 
 #ブラウザ初期化
 browser = Watir::Safari.new
-
 config = YAML.load_file("setting.yml") 
 M = Rixi.new( :consumer_key => config['consumer_key'], 
               :consumer_secret => config['consumer_secret'],
@@ -21,4 +45,6 @@ sleep 1
 browser.button(:name, "accept").click
 sleep 1
 code = URI.parse(browser.url).query.split("=").at(1)
+pp code
+
 M.get_token(code)
