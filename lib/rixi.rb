@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'oauth2'
 require 'json'
-require 'hashie'
-require 'cgi'
 
 class Rixi
   class APIError < StandardError
@@ -74,8 +72,8 @@ class Rixi
     end
   end
 
-  # define_methodでgetかpostにsendされてるので
-  # これらのメソッドが呼ばれる
+  # define_methodで定義されたメソッドは最終的に
+  # これらのメソッドを呼ぶ
   def get(path, params = { })
     @token.refresh! if @token.expired?
     parse_response(@token.get( path, {:mode => :query,
