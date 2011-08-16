@@ -54,7 +54,7 @@ class Rixi
   end
 
   def self.api_settings
-    # method name,             path for API endpoints,              http method
+    # method name,           path for API endpoints,             http method
      "people                   /2/people/%s/%s                           get
       user_timeline            /2/voice/statuses/%s/user_timeline        get
       friends_timeline         /2/voice/statuses/%s/user_timeline        get
@@ -95,22 +95,7 @@ class Rixi
 
   def post(path, params = { })
     @token.refresh! if @token.expired?
-    parse_response(@token.post( path,
-                  {:mode => :body,
-                   :params => params.merge({:oauth_token => @token.token})}))
-  end
-
-  def put
-    @token.refresh! if @token.expired?
-    parse_response(@token.put( path,
-                  {:mode => :body,
-                   :params => params.merge({:oauth_token => @token.token})}))
-
-  end
-
-  def delete
-    @token.refresh! if @token.expired?
-    parse_response(@token.head( path,
+    parse_response(@token.post(path,
                   {:mode => :body,
                    :params => params.merge({:oauth_token => @token.token})}))
   end
