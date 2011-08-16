@@ -14,22 +14,33 @@ class Rixi
   attr_accessor :consumer_key, :consumer_secret, :redirect_uri
   attr_reader :token, :client
 
+  SITE = 'http://api.mixi-platform.com'
+  AUTH_URL ='https://mixi.jp/connect_authorize.pl'
+  TOKEN_URL ='https://secure.mixi-platform.com/2/token'
+
   def initialize(params = { })
     @consumer_key    = params[:consumer_key]
     @consumer_secret = params[:consumer_secret]
     @redirect_uri    = params[:redirect_uri]
-    @scope = params[:scope] || "r_profile"
+    @scope           = scope_to_query(params[:scope])
     @client = OAuth2::Client.new(
           @consumer_key,
           @consumer_secret,
-          :site => 'http://api.mixi-platform.com',
-          :authorize_url =>'https://mixi.jp/connect_authorize.pl',
-          :token_url =>'https://secure.mixi-platform.com/2/token'
+          :site => SITE,
+          :authorize_url => AUTH_URL,
+          :token_url => TOKEN_URL
     )
   end
   
-  def set_scope(scope)
-    @scope ||= scope
+  #スコープ未設定の時はとりあえずプロフィールだけで
+  def scope_to_query(scope)
+    if scope.kind_of?(Hash)
+      return scope.map {|key, value|
+        key.to_s if value
+      }.join(" ")
+    else
+      return scope || "r_profile"
+    end
   end
 
   def authorized_uri
@@ -37,12 +48,13 @@ class Rixi
   end
 
   def get_token(code)
-    @token = @client.auth_code.get_token(code,
-                                         {:redirect_uri => @redirect_uri})
+    @token = @client.auth_code
+                    .get_token(code,
+                               {:redirect_uri => @redirect_uri})
   end
 
   def self.api_settings
-    # method name,      path for API,         http method
+    # method name,             path for API endpoints,              http method
      "people                   /2/people/%s/%s                           get
       user_timeline            /2/voice/statuses/%s/user_timeline        get
       friends_timeline         /2/voice/statuses/%s/user_timeline        get
@@ -76,14 +88,31 @@ class Rixi
   # これらのメソッドを呼ぶ
   def get(path, params = { })
     @token.refresh! if @token.expired?
-    parse_response(@token.get( path, {:mode => :query,
+    parse_response(@token.get(path,
+                  {:mode => :query,
                    :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def post(path, params = { })
     @token.refresh! if @token.expired?
-    parse_response(@token.post( path, {:mode => :body,
-                  :params => params.merge({:oauth_token => @token.token})}))
+    parse_response(@token.post( path,
+                  {:mode => :body,
+                   :params => params.merge({:oauth_token => @token.token})}))
+  end
+
+  def put
+    @token.refresh! if @token.expired?
+    parse_response(@token.put( path,
+                  {:mode => :body,
+                   :params => params.merge({:oauth_token => @token.token})}))
+
+  end
+
+  def delete
+    @token.refresh! if @token.expired?
+    parse_response(@token.head( path,
+                  {:mode => :body,
+                   :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def parse_response(res)
