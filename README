@@ -1,6 +1,10 @@
 rixi is a mixi graph api's wrapper class in Ruby.
 rixi heavily inspired by "tumblife for ruby" and "rubytter".
 
-
+Example:
+Please read sample_*.rb.
+In "sample_sinatra.rb", it's the toutrial for a sinatra application that use this wrapper,
+and, in "sample_safari.rb", it's able to trial this tool in your local "irb".
+"sample_safari.rb" needs a safariwatir rubygem and the safari browser.
 
 
