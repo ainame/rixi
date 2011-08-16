@@ -56,7 +56,7 @@ M = Rixi.new( :consumer_key => config['consumer_key'],
               :redirect_uri => 'http://0.0.0.0:4567/callback',
               :scope => scope)
 
-# scopeはハッシュ形式でも文字列を自前で連結してもOK
+browser = Watir::Safari.new
 browser.goto M.authorized_uri
 sleep 1 #ブラウザ上でちゃんとページ遷移できてないとエラーとなる
 browser.button(:name, "accept").click
