@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'oauth2'
 require 'sinatra'
+require 'sinatra/reloader'
 require 'yaml'
 require_relative 'lib/rixi'
 enable :sessions
@@ -38,7 +39,7 @@ end
 
 # コールバックでアクセストークンを取得（コールバックURLを指定）
 get '/callback' do  
-  @@mixi.get_token(params["code"])                           
+  #@@mixi.get_token(params["code"])                           
   session[:login] = true
   redirect '/'
 end
