@@ -1,2 +1,5 @@
+.gitignore
 setting.yml
 lib/a.rb
+.rvmrc
+pkg/

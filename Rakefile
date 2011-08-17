@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "rixi"
   gem.homepage = "http://github.com/ainame/rixi"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Rixi is a simply library for mixi graph api in Ruby.}
+  gem.description = %Q{Rixi is a simply library for mixi graph api in Ruby.}
   gem.email = "ainame954@facebook.com"
   gem.authors = ["ainame "]
   # dependencies defined in Gemfile
