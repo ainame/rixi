@@ -11,14 +11,17 @@ class Rixi
     end
   end
   
-  attr_accessor :consumer_key, :consumer_secret, :redirect_uri
-  attr_reader :token, :client
+  attr_reader :consumer_key, :consumer_secret, :redirect_uri, :token, :client
 
   SITE = 'http://api.mixi-platform.com'
   AUTH_URL ='https://mixi.jp/connect_authorize.pl'
   TOKEN_URL ='https://secure.mixi-platform.com/2/token'
 
   def initialize(params = { })
+    if params[:consumer_key] == nil && params[:consumer_secret] == nil
+      raise "Rixi needs a consumer_key or consumer_secret."
+    end
+
     @consumer_key    = params[:consumer_key]
     @consumer_secret = params[:consumer_secret]
     @redirect_uri    = params[:redirect_uri]
@@ -68,7 +71,7 @@ class Rixi
       delete_favorite_to_voice /2/voice/favorites/destory/%s/%s          post
     ".strip.split("\n").map {|l| l.strip.split(/\s+/)}
   end
-
+  
   api_settings.each do |api|
     method_name, path, http_method = *api
     http_method ||= 'get'
