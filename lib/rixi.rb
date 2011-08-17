@@ -160,6 +160,20 @@ class Rixi
                    :params => params.merge({:oauth_token => @token.token})}))
   end
 
+  def delete(path, params = { })
+    @token.refresh! if @token.expired?
+    parse_response(@token.delete(path,
+                  {:mode => :body,
+                   :params => params.merge({:oauth_token => @token.token})}))
+  end
+
+  def put(path, params = { })
+    @token.refresh! if @token.expired?
+    parse_response(@token.put(path,
+                  {:mode => :body,
+                   :params => params.merge({:oauth_token => @token.token})}))
+  end
+
   # mixiボイスの投稿を楽にするため
   # Update APIとかぶるか？！
   def voice_update(status)
