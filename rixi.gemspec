@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
     "VERSION",
     "dammy.rb",
     "lib/rixi.rb",
+    "rixi.gemspec",
     "sample_safari.rb",
     "sample_sinatra.rb",
     "spec/rixi_spec.rb",
