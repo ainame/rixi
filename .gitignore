@@ -2,4 +2,7 @@
 setting.yml
 lib/a.rb
 .rvmrc
-pkg/
+*.gem
+.bundle
+Gemfile.lock
+pkg/*
