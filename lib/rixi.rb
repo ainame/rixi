@@ -1,7 +1,33 @@
 # -*- coding: utf-8 -*-
-require 'cgi'
 require 'oauth2'
 require 'json'
+
+module OAuth2
+  class Client
+    # Initializes an AccessToken by making a request to the token endpoint
+    #
+    # @param [Hash] params a Hash of params for the token endpoint
+    # @return [AccessToken] the initalized AccessToken
+    def get_token(params)
+      opts = { :raise_errors => true, :parse => params.delete(:parse)}
+      if options[:token_method] == :post
+        opts[:body] = params
+        opts[:headers] =  { 'Content-Type' => 'application/x-www-form-urlencoded'}
+      else
+        opts[:params] = params
+      end
+      response = request(options[:token_method], token_url, opts)
+      raise Error.new(response) unless response.parsed.is_a?(Hash) && response.parsed['access_token']
+
+      ##
+      ## デフォルトではヘッダーでのAccessToken指定が出来ないため
+      ## 
+      AccessToken.new(self, response.parsed.delete("access_token"), 
+                      :mode => :header,
+                      :header_format => "OAuth %s")
+    end
+  end
+end
 
 class Rixi
   class APIError < StandardError
@@ -53,8 +79,7 @@ class Rixi
 
   def get_token(code)
     @token = @client.auth_code
-                    .get_token(code,
-                               {:redirect_uri => @redirect_uri})
+                    .get_token(code,{:redirect_uri => @redirect_uri})
   end
   
   #
@@ -150,41 +175,36 @@ class Rixi
   # これらのメソッドを呼ぶ
   def get(path, params = { })
     extend_expire()
-    parse_response(@token.get(path,
-                  {:mode => :query,
-                   :params => params.merge({:oauth_token => @token.token})}))
+    parse_response(@token.get(path, :params => params))
   end
 
   def post(path, params = { })
     extend_expire()
-    parse_response(@token.post(path,
-                  {:mode => :body,
-                   :params => params.merge({:oauth_token => @token.token})}))
+    parse_response(@token.post(path,:params => params))
   end
 
   # img は "rb"で開いたFileのインスタンスで渡す
   def post_image(path, img, title = nil)
     extend_expire()
-    path += "?title="+ CGI.encode(title) if title
+    path += "?title="+ URI.encode(title) if title
     parse_response(@token.post(path,
-                  {:mode   => :headers,
-                   :headers => {:content_type  => "image/jpeg",
-                               :content_length => img.size },
-                   :body   => img.read}))
+                               {
+                                 :headers => {
+                                   :content_type  => "image/jpeg",
+                                   :content_length => img.size.to_s,
+                                 },
+                                 :body   => img.read
+                               }))
   end
 
   def delete(path, params = { })
     extend_expire()
-    parse_response(@token.delete(path,
-                  {:mode => :body,
-                   :params => params.merge({:oauth_token => @token.token})}))
+    parse_response(@token.delete(path, :params => params))
   end
 
   def put(path, params = { })
     extend_expire()
-    parse_response(@token.put(path,
-                  {:mode => :body,
-                   :params => params.merge({:oauth_token => @token.token})}))
+    parse_response(@token.put(path, :params => params))
   end
 
   # OAuth2::AccessTokenの仕様上破壊的代入が出来ないため...
