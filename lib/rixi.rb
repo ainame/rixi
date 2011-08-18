@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'cgi'
 require 'oauth2'
 require 'json'
 
@@ -184,16 +185,16 @@ class Rixi
   end
 
   # img は "rb"で開いたFileのインスタンスで渡す
-  def post_image(path, img, title = nil)
+  def post_image(path, params = { })
     extend_expire()
-    path += "?title="+ URI.encode(title) if title
+    path += "?title="+ CGI.escape(params[:title]) if params[:title]
     parse_response(@token.post(path,
                                {
                                  :headers => {
                                    :content_type  => "image/jpeg",
-                                   :content_length => img.size.to_s,
+                                   :content_length => params[:image].size.to_s,
                                  },
-                                 :body   => img.read
+                                 :body   => params[:image].read
                                }))
   end
 
