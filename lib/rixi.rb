@@ -60,6 +60,9 @@ class Rixi
   # 手抜き実装のため、長いメソッド名の乱立で非常に汚いです
   # メソッド名は適当なので好きなように変えて使ってください
   # %s の部分が各種メソッドの引数になります
+  # 
+  # 次期バージョンが出来るとするならAPIの種類毎に
+  # モジュールに切り分けて実装したいです。
   #
   # 注：%d は省略可能なpathを表現するために使ってます
   # 例えば、友人のつぶやき一覧の取得をするAPIは以下で、
@@ -104,7 +107,7 @@ class Rixi
       create_comment_album  /2/photo/comments/albums/%s/@self/%s      post
       delete_comment_album  /2/photo/comments/albums/%s/@self/%s/%s   delete
       create_comment_media  /2/photo/comments/mediaItems/%s/@self/%s/%s/ delete
-　　　create_favorite_media /2/photo/favorites/mediaItems/%s/@self/%s/%s/ post
+      create_favorite_media /2/photo/favorites/mediaItems/%s/@self/%s/%s/ post
       delete_favorite_media /2/photo/favorites/mediaItems/%s/@self/%s/%s/ delete
       messages_inbox        /2/messages/%s/@inbox/%o                  get
       messages_outbox       /2/messages/%s/@outbox/%o                 get
@@ -147,37 +150,44 @@ class Rixi
   # define_methodで定義されたメソッドは最終的に
   # これらのメソッドを呼ぶ
   def get(path, params = { })
-    @token.refresh! if @token.expired?
+    extend_expire()
     parse_response(@token.get(path,
                   {:mode => :query,
                    :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def post(path, params = { })
-    @token.refresh! if @token.expired?
+    extend_expire()
     parse_response(@token.post(path,
                   {:mode => :body,
                    :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def delete(path, params = { })
-    @token.refresh! if @token.expired?
+    extend_expire()
     parse_response(@token.delete(path,
                   {:mode => :body,
                    :params => params.merge({:oauth_token => @token.token})}))
   end
 
   def put(path, params = { })
-    @token.refresh! if @token.expired?
+    extend_expire()
     parse_response(@token.put(path,
                   {:mode => :body,
                    :params => params.merge({:oauth_token => @token.token})}))
   end
 
+  # OAuth2::AccessTokenの仕様上破壊的代入が出来ないため...
+  def extend_expire
+    if @token.expired?
+      @token = @token.refresh! 
+    end
+  end
+
   # mixiボイスの投稿を楽にするため
   # Update APIとかぶるか？！
   def voice_update(status)
-    voice_statuses_update(:statsu => status)
+    voice_statuses_update(:statsus => status)
   end
   
   def parse_response(res)
