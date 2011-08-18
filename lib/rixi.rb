@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+require 'cgi'
 require 'oauth2'
 require 'json'
 
@@ -97,18 +98,19 @@ class Rixi
       delete_favorite       /2/voice/favorites/destory/%s/%s          post
       albums                /2/photo/albums/%s/@self/%o               get
       recent_album          /2/photo/albums/%s/%s                     get
-      mediaitmes            /2/photo/mediaItems/%s/@self/%s/%o        get
-      recent_media          /2/photo/mediaItems/%s/%o 　　　　        get
+      photos_in_album       /2/photo/mediaItems/%s/@self/%s/%o        get
+      recent_photos         /2/photo/mediaItems/%s/%o 　　　　        get
       comments_album        /2/photo/comments/albums/%s/@self/%s      get
-      comments_media        /2/photo/comments/mediaItems/%s/@self/%s/%s  get
-      favorites_media       /2/phoho/favorites/mediaItems/%s/@self/%s/%s get
+      comments_photo        /2/photo/comments/mediaItems/%s/@self/%s/%s  get
+      favorites_photo       /2/phoho/favorites/mediaItems/%s/@self/%s/%s get
       create_album          /2/photo/albums/%s/@self                  post
       delete_album          /2/photo/albums/%s/@self/%s               delete
       create_comment_album  /2/photo/comments/albums/%s/@self/%s      post
       delete_comment_album  /2/photo/comments/albums/%s/@self/%s/%s   delete
-      create_comment_media  /2/photo/comments/mediaItems/%s/@self/%s/%s/ delete
-      create_favorite_media /2/photo/favorites/mediaItems/%s/@self/%s/%s/ post
-      delete_favorite_media /2/photo/favorites/mediaItems/%s/@self/%s/%s/ delete
+      upload_photo          /2/photo/mediaItems/%s/@self/%s           post_image
+      create_comment_photo  /2/photo/comments/mediaItems/%s/@self/%s/%s/ delete
+      create_favorite_photo /2/photo/favorites/mediaItems/%s/@self/%s/%s/ post
+      delete_favorite_photo /2/photo/favorites/mediaItems/%s/@self/%s/%s/ delete
       messages_inbox        /2/messages/%s/@inbox/%o                  get
       messages_outbox       /2/messages/%s/@outbox/%o                 get
       create_message        /2/messages/%s/@self/@outbox              post
@@ -158,6 +160,17 @@ class Rixi
     parse_response(@token.post(path,
                   {:mode => :body,
                    :params => params.merge({:oauth_token => @token.token})}))
+  end
+
+  # img は "rb"で開いたFileのインスタンスで渡す
+  def post_image(path, img, title = nil)
+    extend_expire()
+    path += "?title="+ CGI.encode(title) if title
+    parse_response(@token.post(path,
+                  {:mode   => :headers,
+                   :headers => {:content_type  => "image/jpeg",
+                               :content_length => img.size },
+                   :body   => img.read}))
   end
 
   def delete(path, params = { })
