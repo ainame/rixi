@@ -126,15 +126,15 @@ class Rixi
     method_name, path, http_method = *api
     http_method ||= 'get'
     if /%s/ =~ path
-      if /%o/ =~ path
-        if params.key? :optional_path
-          path.sub!("%o",params[:optional_path].to_s)
-        else
-          path.sub!("/%o","")
-        end
-      end
       define_method method_name do |*args|
         params = args.last.kind_of?(Hash) ? args.pop : { }
+        if /%o/ =~ path
+          if params.key? :optional_path
+            path.sub!("%o",params[:optional_path].to_s)
+          else
+            path.sub!("/%o","")
+          end
+        end
         __send__ http_method, path % args, params
       end
     else
