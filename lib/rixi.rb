@@ -179,7 +179,7 @@ class Rixi
     parse_response(@token.post(path,:params => params))
   end
 
-  # img は "rb"で開いたFileのインスタンスで渡す
+  # 画像 は params[:image], タイトルは params[:title]で渡す
   def post_image(path, params = { })
     extend_expire()
     path += "?title="+ CGI.escape(params[:title]) if params[:title]
