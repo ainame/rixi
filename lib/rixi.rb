@@ -95,7 +95,7 @@ class Rixi
       delete_replies        /2/voice/replies/destroy/%s/%s            post
       create_favorite       /2/voice/favorites/create/%s              post
       delete_favorite       /2/voice/favorites/destory/%s/%s          post
-      album                 /2/photo/albums/%s/@self/%o               get
+      albums                /2/photo/albums/%s/@self/%o               get
       recent_album          /2/photo/albums/%s/%s                     get
       mediaitmes            /2/photo/mediaItems/%s/@self/%s/%o        get
       recent_media          /2/photo/mediaItems/%s/%o 　　　　        get
@@ -126,20 +126,17 @@ class Rixi
     method_name, path, http_method = *api
     http_method ||= 'get'
     if /%s/ =~ path
-      define_method method_name do |*args|
-        params = args.last.kind_of?(Hash) ? args.pop : { }
-        __send__ http_method, path % args, params
-      end
-    elsif /%o/ =~ path
-      define_method method_name do |*args|
-        params = args.last.kind_of?(Hash) ? args.pop : { }
+      if /%o/ =~ path
         if params.key? :optional_path
           path.sub!("%o",params[:optional_path].to_s)
         else
           path.sub!("/%o","")
         end
+      end
+      define_method method_name do |*args|
+        params = args.last.kind_of?(Hash) ? args.pop : { }
         __send__ http_method, path % args, params
-      end      
+      end
     else
       define_method method_name do |params = { }|
         __send__ http_method, path, params
@@ -185,7 +182,6 @@ class Rixi
   end
 
   # mixiボイスの投稿を楽にするため
-  # Update APIとかぶるか？！
   def voice_update(status)
     voice_statuses_update(:statsus => status)
   end
