@@ -3,12 +3,9 @@ require 'cgi'
 require 'oauth2'
 require 'json'
 
+# monkey patch
 module OAuth2
   class Client
-    # Initializes an AccessToken by making a request to the token endpoint
-    #
-    # @param [Hash] params a Hash of params for the token endpoint
-    # @return [AccessToken] the initalized AccessToken
     def get_token(params)
       opts = { :raise_errors => true, :parse => params.delete(:parse)}
       if options[:token_method] == :post
@@ -20,9 +17,8 @@ module OAuth2
       response = request(options[:token_method], token_url, opts)
       raise Error.new(response) unless response.parsed.is_a?(Hash) && response.parsed['access_token']
 
-      ##
-      ## デフォルトではヘッダーでのAccessToken指定が出来ないため
-      ## 
+      # デフォルトではヘッダーでのAccessToken指定が出来ないため
+      # modeとheader_formatを追加
       AccessToken.new(self, response.parsed.delete("access_token"), 
                       :mode => :header,
                       :header_format => "OAuth %s")
@@ -105,7 +101,6 @@ class Rixi
   # 注3：DiaryAPIもmultipart/form-data形式として投稿しなければならないため
   # 現状、未実装です
   #
-  # 注4：画像投稿系のAPIは未対応です
   #
   def self.api_settings
     # method name,           path for API endpoints,             http method
