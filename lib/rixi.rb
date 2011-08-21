@@ -36,26 +36,30 @@ class Rixi
   end
   
   attr_reader :consumer_key, :consumer_secret, :redirect_uri, :token, :client
-
+  
   SITE = 'http://api.mixi-platform.com'
   AUTH_URL ='https://mixi.jp/connect_authorize.pl'
   TOKEN_URL ='https://secure.mixi-platform.com/2/token'
-
+  
   def initialize(params = { })
     if params[:consumer_key] == nil && params[:consumer_secret] == nil
       raise "Rixi needs a consumer_key or consumer_secret."
     end
-
-    @consumer_key    = params[:consumer_key]
-    @consumer_secret = params[:consumer_secret]
-    @redirect_uri    = params[:redirect_uri]
-    @scope           = scope_to_query(params[:scope])
+    
+    @consumer_key    = params.delete :consumer_key
+    @consumer_secret = params.delete :consumer_secret
+    @redirect_uri    = params.delete :redirect_uri
+    @scope           = scope_to_query(params.delete(:scope))
+    
+    params.merge!({
+      :site => SITE,
+      :authorize_url => AUTH_URL,
+      :token_url => TOKEN_URL    
+    })
     @client = OAuth2::Client.new(
           @consumer_key,
           @consumer_secret,
-          :site => SITE,
-          :authorize_url => AUTH_URL,
-          :token_url => TOKEN_URL
+          params
     )
   end
   
@@ -87,7 +91,7 @@ class Rixi
   # 次期バージョンが出来るとするならAPIの種類毎に
   # モジュールに切り分けて実装したいです。
   #
-  # 注：%d は省略可能なpathを表現するために使ってます
+  # 注：%o は省略可能なpathを表現するために使ってます
   # 例えば、友人のつぶやき一覧の取得をするAPIは以下で、
   # /2/voice/statuses/friends_timeline/[Group-ID]?since_id=[つぶやきのID]
   # Group-IDはpathにも含まれますが省略可能です
@@ -112,7 +116,7 @@ class Rixi
       show_status           /2/voice/statuses/show/%s                 get
       show_favorites        /2/voice/favorites/show/%s                get
       update_status         /2/voice/statuses/update                  post
-      delete_statsu         /2/voice/statuses/destroy/%s              post
+      delete_status         /2/voice/statuses/destroy/%s              post
       create_replies        /2/voice/statuses/replies/create/%s       post
       delete_replies        /2/voice/replies/destroy/%s/%s            post
       create_favorite       /2/voice/favorites/create/%s              post
@@ -129,9 +133,19 @@ class Rixi
       create_comment_album  /2/photo/comments/albums/%s/@self/%s      post
       delete_comment_album  /2/photo/comments/albums/%s/@self/%s/%s   delete
       upload_photo          /2/photo/mediaItems/%s/@self/%s           post_image
+      delete_photo          /2/photo/mediaItems/%s/@self/%s/%s        delete
       create_comment_photo  /2/photo/comments/mediaItems/%s/@self/%s/%s/ delete
       create_favorite_photo /2/photo/favorites/mediaItems/%s/@self/%s/%s/ post
       delete_favorite_photo /2/photo/favorites/mediaItems/%s/@self/%s/%s/ delete
+      spot                  /2/spots/%s                               get
+　　  search_spot           /2/search/spots                           get
+      spots_list            /2/spots/%s/@self                         get
+      create_myspot         /2/spots/%s/@self                         post
+      delete_myspot         /2/spots/%s/@self                         delete
+      get_checkins          /2/checkins/%s/%s                         get
+      get_checkin           /2/checkins/%s/@self/%s                   get 
+      checkin               /2/checkins/%s                            post
+      checkin_with_photo    /2/checkins/%s                            post_spot
       messages_inbox        /2/messages/%s/@inbox/%o                  get
       messages_outbox       /2/messages/%s/@outbox/%o                 get
       create_message        /2/messages/%s/@self/@outbox              post
@@ -141,7 +155,7 @@ class Rixi
       people_images         /2/people/images/%s/@self/%o              get
       create_people_image   /2/people/images/%s/@self                 post
       set_people_image      /2/people/images/%s/@self/%s              put
-      delete_people_imag    /2/people/images/%s/@self/%s              delete
+      delete_people_image   /2/people/images/%s/@self/%s              delete
     ".strip.split("\n").map {|l| l.strip.split(/\s+/)}
   end
  
@@ -193,9 +207,23 @@ class Rixi
                                }))
   end
 
+  # 写真付きspotの投稿
+  def post_spot(path, params = { })
+    extend_expire()
+    path += "?title="+ CGI.escape(params[:title]) if params[:title]
+    parse_response(@token.post(path,
+                               { :headers => {
+                                   :content_type  => "multipart/form-data",
+                                   :content_length => params[:image].size.to_s,
+                                 },
+                                 :body   => "request=" + params[:spot].to_json +
+                                   "&photo=" + params[:image].read
+                                 }))
+  end
+
   def delete(path, params = { })
     extend_expire()
-    parse_response(@token.delete(path, :params => params))
+    @token.delete(path, :params => params).response.env[:status].to_s
   end
 
   def put(path, params = { })
