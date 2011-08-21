@@ -22,8 +22,7 @@ module OAuth2
       #AccessToken.from_hash(self, response.parsed)   
       response = response.parsed
       AccessToken.new(self, response.delete("access_token") || response.delete(:access_token), 
-                      {
-                        :mode => :header,
+                      {:mode => :header,
                         :header_format => "OAuth %s"
                       }.merge(response))
     end
