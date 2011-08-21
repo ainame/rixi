@@ -64,7 +64,8 @@ config = YAML.load_file("setting.yml")
 M = Rixi.new( :consumer_key => config['consumer_key'], 
               :consumer_secret => config['consumer_secret'],
               :redirect_uri => 'http://0.0.0.0:4567/callback',
-              :scope => scope)
+              :scope => scope,
+              :connection_opts => {:proxy => ENV["https_proxy"]})
 
 browser = Watir::Safari.new
 browser.goto M.authorized_uri
