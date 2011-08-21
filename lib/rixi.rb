@@ -16,12 +16,16 @@ module OAuth2
       end
       response = request(options[:token_method], token_url, opts)
       raise Error.new(response) unless response.parsed.is_a?(Hash) && response.parsed['access_token']
-
+      
       # デフォルトではヘッダーでのAccessToken指定が出来ないため
       # modeとheader_formatを追加
-      AccessToken.new(self, response.parsed.delete("access_token"), 
-                      :mode => :header,
-                      :header_format => "OAuth %s")
+      #AccessToken.from_hash(self, response.parsed)   
+      response = response.parsed
+      AccessToken.new(self, response.delete("access_token") || response.delete(:access_token), 
+                      {
+                        :mode => :header,
+                        :header_format => "OAuth %s"
+                      }.merge(response))
     end
   end
 end
@@ -144,7 +148,7 @@ class Rixi
       delete_myspot         /2/spots/%s/@self                         delete
       get_checkins          /2/checkins/%s/%s                         get
       get_checkin           /2/checkins/%s/@self/%s                   get 
-      checkin               /2/checkins/%s                            post
+      checkin               /2/checkins/%s                            post_spot
       checkin_with_photo    /2/checkins/%s                            post_spot
       messages_inbox        /2/messages/%s/@inbox/%o                  get
       messages_outbox       /2/messages/%s/@outbox/%o                 get
@@ -210,15 +214,31 @@ class Rixi
   # 写真付きspotの投稿
   def post_spot(path, params = { })
     extend_expire()
-    path += "?title="+ CGI.escape(params[:title]) if params[:title]
+    body = <<-"EOF"
+------\r
+Content-Disposition: form-data; name="request"\r
+\r
+#{params[:spot].to_json}\r
+\r
+EOF
+    if params[:image]
+      body += <<-"EOF"
+------\r
+Content-Disposition: form-data; name="photo"; filename="#{Time.now.strftime("%Y%m%d%H%M%S")}.jpg"\r
+Content-Type: image/jpeg\r
+\r
+#{params[:image].read}\r
+\r
+EOF
+    end
+
     parse_response(@token.post(path,
                                { :headers => {
                                    :content_type  => "multipart/form-data",
-                                   :content_length => params[:image].size.to_s,
+                                   :content_length => body.bytesize,
                                  },
-                                 :body   => "request=" + params[:spot].to_json +
-                                   "&photo=" + params[:image].read
-                                 }))
+                                 :body   => body
+                               }))
   end
 
   def delete(path, params = { })
