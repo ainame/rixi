@@ -213,28 +213,31 @@ class Rixi
   # 写真付きspotの投稿
   def post_spot(path, params = { })
     extend_expire()
-    body = <<-"EOF"
-------\r
+    if params[:image]
+      now = Time.now.strftime("%Y%m%d%H%M%S")
+      content_type = "multipart/form-data; boundary=boundary#{now}"
+      body = <<"EOF".force_encoding("UTF-8")
+--bqoundary#{now}\r
 Content-Disposition: form-data; name="request"\r
+Content-Type: application/json\r
 \r
 #{params[:spot].to_json}\r
-\r
-EOF
-    if params[:image]
-      body += <<-"EOF"
-------\r
-Content-Disposition: form-data; name="photo"; filename="#{Time.now.strftime("%Y%m%d%H%M%S")}.jpg"\r
+--boundary#{now}\r
+Content-Disposition: form-data; name="photo"; filename="#{now}.jpg"\r
 Content-Type: image/jpeg\r
 \r
 #{params[:image].read}\r
-\r
+--boundary#{now}--
 EOF
+    else
+      content_type = "application/json"
+      body = params[:spot].to_json
     end
 
     parse_response(@token.post(path,
                                { :headers => {
-                                   :content_type  => "multipart/form-data",
-                                   :content_length => body.bytesize,
+                                   :content_type  => content_type,
+                                   :content_length => body.bytesize.to_s,
                                  },
                                  :body   => body
                                }))
@@ -262,11 +265,12 @@ EOF
     voice_statuses_update(:statsus => status)
   end
   
-  def parse_response(res)
-    res = res.response.env
+  def parse_response(response)
+    res = response.response.env
     case res[:status].to_i
     when 400...600
-      raise APIError.new("API Error", res)
+      puts "API ERROR: status_code=" + res[:status].to_s
+      JSON.parse(res[:body])
     else
       JSON.parse(res[:body])
     end
