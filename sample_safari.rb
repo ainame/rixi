@@ -65,7 +65,8 @@ M = Rixi.new( :consumer_key => config['consumer_key'],
               :consumer_secret => config['consumer_secret'],
               :redirect_uri => 'http://0.0.0.0:4567/callback',
               :scope => scope,
-              :connection_opts => {:proxy => ENV["https_proxy"]})
+              :connection_opts => {:proxy => ENV["https_proxy"]},
+              :raise_errors => false)
 
 browser = Watir::Safari.new
 browser.goto M.authorized_uri
