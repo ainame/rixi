@@ -17,14 +17,11 @@ module OAuth2
       response = request(options[:token_method], token_url, opts)
       raise Error.new(response) unless response.parsed.is_a?(Hash) && response.parsed['access_token']
       
-      # デフォルトではヘッダーでのAccessToken指定が出来ないため
-      # modeとheader_formatを追加
-      #AccessToken.from_hash(self, response.parsed)   
+      # OAuth2.0 draft v2-20 => v2-10(mixi)に変更
+      # AccessToken.from_hash(self, response.parsed) 
       response = response.parsed
       AccessToken.new(self, response.delete("access_token") || response.delete(:access_token), 
-                      {:mode => :header,
-                        :header_format => "OAuth %s"
-                      }.merge(response))
+                      {:mode => :header, :header_format => "OAuth %s"}.merge(response))                     
     end
   end
 end
@@ -101,7 +98,6 @@ class Rixi
   # そのような場合は、最後の引数のハッシュで:optional_pathのキーで
   # 指定するとして、:optional_pathが存在しなければAPIのパスから
   # 省略することとします。
-  #
   #
   def self.api_settings
     # method name,           path for API endpoints,             http method
