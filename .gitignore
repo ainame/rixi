@@ -6,3 +6,4 @@ lib/a.rb
 .bundle
 Gemfile.lock
 pkg/*
+*.json

@@ -102,12 +102,6 @@ class Rixi
   # 指定するとして、:optional_pathが存在しなければAPIのパスから
   # 省略することとします。
   #
-  # 注2：mixiチェック用API /2/share はPOSTメソッドでリクエストする際に、
-  # データをJSON形式で与えるため、未実装です。
-  #
-  # 注3：DiaryAPIもmultipart/form-data形式として投稿しなければならないため
-  # 現状、未実装です
-  #
   #
   def self.api_settings
     # method name,           path for API endpoints,             http method
@@ -124,6 +118,7 @@ class Rixi
       delete_replies        /2/voice/replies/destroy/%s/%s            post
       create_favorite       /2/voice/favorites/create/%s              post
       delete_favorite       /2/voice/favorites/destory/%s/%s          post
+      share                 /2/share                                  post_json
       albums                /2/photo/albums/%s/@self/%o               get
       recent_album          /2/photo/albums/%s/%s                     get
       photos_in_album       /2/photo/mediaItems/%s/@self/%s/%o        get
@@ -131,24 +126,26 @@ class Rixi
       comments_album        /2/photo/comments/albums/%s/@self/%s      get
       comments_photo        /2/photo/comments/mediaItems/%s/@self/%s/%s  get
       favorites_photo       /2/phoho/favorites/mediaItems/%s/@self/%s/%s get
-      create_album          /2/photo/albums/%s/@self                  post
+      create_album          /2/photo/albums/%s/@self                  post_json
       delete_album          /2/photo/albums/%s/@self/%s               delete
-      create_comment_album  /2/photo/comments/albums/%s/@self/%s      post
+      create_comment_album  /2/photo/comments/albums/%s/@self/%s      post_json
       delete_comment_album  /2/photo/comments/albums/%s/@self/%s/%s   delete
       upload_photo          /2/photo/mediaItems/%s/@self/%s           post_image
       delete_photo          /2/photo/mediaItems/%s/@self/%s/%s        delete
-      create_comment_photo  /2/photo/comments/mediaItems/%s/@self/%s/%s/ delete
+      create_comment_photo  /2/photo/comments/mediaItems/%s/@self/%s/%s/ post_json
+      delete_comment_photo  /2/photo/comments/mediaItems/%s/@self/%s/%s/ delete
       create_favorite_photo /2/photo/favorites/mediaItems/%s/@self/%s/%s/ post
       delete_favorite_photo /2/photo/favorites/mediaItems/%s/@self/%s/%s/ delete
       spot                  /2/spots/%s                               get
-　　  search_spot           /2/search/spots                           get
+      search_spot           /2/search/spots                           get
       spots_list            /2/spots/%s/@self                         get
       create_myspot         /2/spots/%s/@self                         post
       delete_myspot         /2/spots/%s/@self                         delete
       get_checkins          /2/checkins/%s/%s                         get
       get_checkin           /2/checkins/%s/@self/%s                   get 
-      checkin               /2/checkins/%s                            post_spot
-      checkin_with_photo    /2/checkins/%s                            post_spot
+      checkin               /2/checkins/%s                            post_multipart
+      checkin_with_photo    /2/checkins/%s                            post_multipart
+      diary                 /2/diary/articles/@me/@self               post_multipart
       messages_inbox        /2/messages/%s/@inbox/%o                  get
       messages_outbox       /2/messages/%s/@outbox/%o                 get
       create_message        /2/messages/%s/@self/@outbox              post
@@ -175,10 +172,12 @@ class Rixi
             path.sub!("/%o","")
           end
         end
+        extend_expire()
         __send__ http_method, path % args, params
       end
     else
       define_method method_name do |params = { }|
+        extend_expire()
         __send__ http_method, path, params
       end
     end
@@ -187,69 +186,59 @@ class Rixi
   # define_methodで定義されたメソッドは最終的に
   # これらのメソッドを呼ぶ
   def get(path, params = { })
-    extend_expire()
     parse_response(@token.get(path, :params => params))
   end
 
   def post(path, params = { })
-    extend_expire()
     parse_response(@token.post(path,:params => params))
   end
 
   # 画像 は params[:image], タイトルは params[:title]で渡す
+  # 画像はバイナリ文字列で渡す
   def post_image(path, params = { })
-    extend_expire()
     path += "?title="+ CGI.escape(params[:title]) if params[:title]
-    parse_response(@token.post(path,
-                               {
+    parse_response(@token.post(path,{
                                  :headers => {
                                    :content_type  => "image/jpeg",
                                    :content_length => params[:image].size.to_s,
-                                 },
-                                 :body   => params[:image].read
-                               }))
+                                 },:body   => params[:image]}))
   end
 
-  # 写真付きspotの投稿
-  def post_spot(path, params = { })
-    extend_expire()
+  # params[:json]はハッシュで渡して関数内でJSON化する
+  def post_json(path, params = { })
+    parse_response(@token.post(path,{
+                                 :headers => {
+                                   :content_type  => "application/json; charset=utf-8",
+                                   :content_length => params[:json].size.to_s
+                                 },:body   => params[:json]}))
+  end
+
+  # JSON形式＋写真を投稿することが可能なAPIについて
+  def post_multipart(path, params ={ })
     if params[:image]
       now = Time.now.strftime("%Y%m%d%H%M%S")
       content_type = "multipart/form-data; boundary=boundary#{now}"
-      body = <<"EOF".force_encoding("UTF-8")
---bqoundary#{now}\r
-Content-Disposition: form-data; name="request"\r
-Content-Type: application/json\r
-\r
-#{params[:spot].to_json}\r
---boundary#{now}\r
-Content-Disposition: form-data; name="photo"; filename="#{now}.jpg"\r
-Content-Type: image/jpeg\r
-\r
-#{params[:image].read}\r
---boundary#{now}--
-EOF
+      body  = application_json(now,params[:json])
+      body << attach_photos(now,params[:image])
+      body << end_boundary(now)
     else
       content_type = "application/json"
-      body = params[:spot].to_json
+      body = params[:json]
     end
-
-    parse_response(@token.post(path,
-                               { :headers => {
-                                   :content_type  => content_type,
-                                   :content_length => body.bytesize.to_s,
+    
+    parse_response(@token.post(path,{
+                                 :headers => {
+                                   :content_type  => content_type,                         
+                                   :content_length => body.size.to_s
                                  },
-                                 :body   => body
-                               }))
+                                 :body => body}))                                 
   end
 
   def delete(path, params = { })
-    extend_expire()
     @token.delete(path, :params => params).response.env[:status].to_s
   end
 
   def put(path, params = { })
-    extend_expire()
     parse_response(@token.put(path, :params => params))
   end
 
@@ -274,6 +263,44 @@ EOF
     else
       JSON.parse(res[:body])
     end
+  end
+
+  # build request body
+  def application_json(time,json)
+    return <<-"EOF".force_encoding("UTF-8")
+--boundary#{time}\r
+Content-Disposition: form-data; name="request"\r
+Content-Type: application/json\r
+\r
+#{json.to_json}\r
+EOF
+  end
+
+  def attach_photos(time, imgs)
+    if imgs.instance_of?(Array)
+      count = 1
+    else
+      count = ""
+      imgs = [imgs]
+    end
+    
+    attach = ""
+    imgs.each do |img|
+      tmp = <<"IMAGE".force_encoding("UTF-8")
+--boundary#{time}\r
+Content-Disposition: form-data; name="photo#{count}"; filename="#{time+count.to_s}.jpg"\r
+Content-Type: image/jpeg\r
+\r
+#{img}\r
+IMAGE
+      count+=1 if count != ""
+      attach << tmp
+    end
+    attach
+  end
+
+  def end_boundary(time)
+    "--boundary#{time}--"
   end
   
 end
