@@ -72,9 +72,8 @@ browser = Watir::Safari.new
 browser.goto M.authorized_uri
 sleep 1 #ブラウザ上でちゃんとページ遷移できてないとエラーとなる
 browser.button(:name, "accept").click
-sleep 1
-code = URI.parse(browser.url).query.split("=").at(1)
-# codeが取得出来てるか確認
-pp code 
+while((code = URI.parse(browser.url).query.split("=").at(1)) == nil )
 
+end
+# codeが取得出来てるか確認
 M.get_token(code)
