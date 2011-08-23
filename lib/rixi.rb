@@ -246,8 +246,9 @@ class Rixi
   end
 
   # mixiボイスの投稿を楽にするため
-  def voice_update(status)
-    voice_statuses_update(:statsus => status)
+  def voice(status)
+    parse_response(@token.post("/2/voice/statuses/update",
+                               :params => {:status => status.force_encoding("UTF-8")}))
   end
   
   def parse_response(response)
