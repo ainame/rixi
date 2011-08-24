@@ -79,10 +79,9 @@ class Rixi
   end
 
   def get_token(code)
-    @token = @client.auth_code
-                    .get_token(code,{:redirect_uri => @redirect_uri})
+    @token = @client.auth_code.get_token(code,{:redirect_uri => @redirect_uri})
   end
-  
+
   #
   # 手抜き実装のため、長いメソッド名の乱立で非常に汚いです
   # メソッド名は適当なので好きなように変えて使ってください
