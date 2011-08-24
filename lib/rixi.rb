@@ -252,9 +252,7 @@ class Rixi
 
   # OAuth2::AccessTokenの仕様上破壊的代入が出来ないため...
   def extend_expire
-    if @token.expired?
-      @token = @token.refresh! 
-    end
+    @token = @token.refresh! 
   end
 
   # mixiボイスの投稿を楽にするため
