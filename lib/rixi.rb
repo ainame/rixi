@@ -78,10 +78,10 @@ class Rixi
     @client.auth_code.authorize_url(:scope => @scope)
   end
 
+<<<<<<< HEAD
   #自分自身を返す
   def get_token(code)
     @token = @client.auth_code.get_token(code,{:redirect_uri => @redirect_uri})
-    self
   end
 
   #自分自身を返す
@@ -91,8 +91,8 @@ class Rixi
                                     :expires_in => Time.now,
                                     :expires_at => 900,
                                     :mode => :header,
-                                    :header_format => "OAuth %s")                                )
-    self
+                                    :header_format => "OAuth %s")
+    return self
   end
 
   #

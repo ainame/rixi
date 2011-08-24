@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rixi}
-  s.version = "0.3.1"
+  s.version = "0.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{ainame }]
-  s.date = %q{2011-08-23}
+  s.date = %q{2011-08-24}
   s.description = %q{Rixi is a simply library for mixi graph api in Ruby.}
   s.email = %q{ainame954@facebook.com}
   s.extra_rdoc_files = [
