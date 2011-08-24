@@ -81,6 +81,7 @@ class Rixi
   #自分自身を返す
   def get_token(code)
     @token = @client.auth_code.get_token(code,{:redirect_uri => @redirect_uri})
+    return self
   end
 
   #自分自身を返す
