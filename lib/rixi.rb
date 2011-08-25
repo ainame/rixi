@@ -85,10 +85,10 @@ class Rixi
   end
 
   #自分自身を返す
-  def set_token(access_token, refresh_token)
+  def set_token(access_token, refresh_token, expires_in)
     @token = OAuth2::AccessToken.new(@client,access_token,
                                      {:refresh_token => refresh_token,
-                                       :expires_in => Time.now,
+                                       :expires_in => expires_in,
                                        :expires_at => 900,
                                        :mode => :header,
                                        :header_format => "OAuth %s"})
