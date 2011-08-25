@@ -92,7 +92,6 @@ class Rixi
                                        :expires_at => 900,
                                        :mode => :header,
                                        :header_format => "OAuth %s"})
-    pp @token
     return self
   end
 
