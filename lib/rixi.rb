@@ -231,7 +231,7 @@ class Rixi
       body << end_boundary(now)
     else
       content_type = "application/json"
-      body = params[:json]
+      body = params[:json].to_json
     end
     
     parse_response(@token.post(path,{
@@ -252,7 +252,9 @@ class Rixi
 
   # OAuth2::AccessTokenの仕様上破壊的代入が出来ないため...
   def extend_expire
-    @token = @token.refresh! 
+    if @token.expired?
+      @token = @token.refresh! 
+    end
   end
 
   # mixiボイスの投稿を楽にするため
