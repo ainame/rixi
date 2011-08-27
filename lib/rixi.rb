@@ -75,6 +75,7 @@ class Rixi
   end
 
   def authorized_uri
+    # @client.auth_code.authorize_url(:scope => @scope)
     @client.auth_code.authorize_url(:scope => @scope)
   end
 
