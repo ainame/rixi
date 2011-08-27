@@ -12,6 +12,6 @@ group :development do
   gem "rcov", ">= 0"
 end
 
-gem "oauth2"
+gem "oauth2", ">= 0.5.0"
 gem "json"
 
