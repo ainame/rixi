@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
-    "dammy.rb",
+    "dummy.rb",
     "lib/rixi.rb",
     "rixi.gemspec",
     "sample_safari.rb",
