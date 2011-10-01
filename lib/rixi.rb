@@ -6,11 +6,11 @@ require 'json'
 # monkey patch
 module OAuth2
   class Client
-    def get_token(params)
-      opts = { :raise_errors => true, :parse => params.delete(:parse)}
+    def get_token(params, access_token_opts={ })
+      opts = {:raise_errors => true, :parse => params.delete(:parse)}
       if options[:token_method] == :post
         opts[:body] = params
-        opts[:headers] =  { 'Content-Type' => 'application/x-www-form-urlencoded'}
+        opts[:headers] =  {'Content-Type' => 'application/x-www-form-urlencoded'}
       else
         opts[:params] = params
       end
@@ -21,7 +21,7 @@ module OAuth2
       # AccessToken.from_hash(self, response.parsed) 
       response = response.parsed
       AccessToken.new(self, response.delete("access_token") || response.delete(:access_token), 
-                      {:mode => :header, :header_format => "OAuth %s"}.merge(response))                     
+                      {:mode => :header, :header_format => "OAuth %s"}.merge(response).merge(access_token_opts))
     end
   end
 end
