@@ -3,29 +3,6 @@ require 'cgi'
 require 'oauth2'
 require 'json'
 
-# monkey patch
-module OAuth2
-  class Client
-    def get_token(params, access_token_opts={ })
-      opts = {:raise_errors => true, :parse => params.delete(:parse)}
-      if options[:token_method] == :post
-        opts[:body] = params
-        opts[:headers] =  {'Content-Type' => 'application/x-www-form-urlencoded'}
-      else
-        opts[:params] = params
-      end
-      response = request(options[:token_method], token_url, opts)
-      raise Error.new(response) unless response.parsed.is_a?(Hash) && response.parsed['access_token']
-      
-      # OAuth2.0 draft v2-20 => v2-10(mixi)に変更
-      # AccessToken.from_hash(self, response.parsed) 
-      response = response.parsed
-      AccessToken.new(self, response.delete("access_token") || response.delete(:access_token), 
-                      {:mode => :header, :header_format => "OAuth %s"}.merge(response).merge(access_token_opts))
-    end
-  end
-end
-
 class Rixi
   class APIError < StandardError
     attr_reader :response    
@@ -80,7 +57,7 @@ class Rixi
 
   #自分自身を返す
   def get_token(code)
-    @token = @client.auth_code.get_token(code,{:redirect_uri => @redirect_uri})
+    @token = @client.auth_code.get_token(code, {:redirect_uri => @redirect_uri}, {:mode => :header, :header_format => "OAuth %s"})
     return self
   end
 
