@@ -4,14 +4,14 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{rixi}
-  s.version = "0.3.8"
+  s.name = "rixi"
+  s.version = "0.3.9"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{ainame }]
-  s.date = %q{2011-10-01}
-  s.description = %q{Rixi is a simply library for mixi graph api in Ruby.}
-  s.email = %q{ainame954@facebook.com}
+  s.authors = ["ainame "]
+  s.date = "2011-11-06"
+  s.description = "Rixi is a simply library for mixi graph api in Ruby."
+  s.email = "ainame954@facebook.com"
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "delete_kantan_photo.rb",
     "dummy.rb",
     "lib/rixi.rb",
     "rixi.gemspec",
@@ -31,11 +32,11 @@ Gem::Specification.new do |s|
     "spec/rixi_spec.rb",
     "spec/spec_helper.rb"
   ]
-  s.homepage = %q{http://github.com/ainame/rixi}
-  s.licenses = [%q{MIT}]
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.8}
-  s.summary = %q{Rixi is a simply library for mixi graph api in Ruby.}
+  s.homepage = "http://github.com/ainame/rixi"
+  s.licenses = ["MIT"]
+  s.require_paths = ["lib"]
+  s.rubygems_version = "1.8.10"
+  s.summary = "Rixi is a simply library for mixi graph api in Ruby."
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
