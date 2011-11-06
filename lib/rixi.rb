@@ -66,7 +66,7 @@ class Rixi
     @token = OAuth2::AccessToken.new(@client,access_token,
                                      {:refresh_token => refresh_token,
                                        :expires_in => expires_in,
-                                       :expires_at => 900,
+                                       :expires_at => Time.now.to_i+expires_in,
                                        :mode => :header,
                                        :header_format => "OAuth %s"})
     return self
