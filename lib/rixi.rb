@@ -94,7 +94,7 @@ class Rixi
       search_people         /2/search/people/%s                       get
       updates               /2/updates/%s/%s                          get
       user_timeline         /2/voice/statuses/%s/user_timeline        get
-      friends_timeline      /2/voice/statuses/%s/friends_timeline/%o  get
+      friends_timeline      /2/voice/statuses/friends_timeline/%o     get
       show_status           /2/voice/statuses/show/%s                 get
       show_favorites        /2/voice/favorites/show/%s                get
       update_status         /2/voice/statuses/update                  post
@@ -161,7 +161,15 @@ class Rixi
         __send__ http_method, path % args, params
       end
     else
-      define_method method_name do |params = { }|
+      define_method method_name do |*args|
+        params = args.last.kind_of?(Hash) ? args.pop : { }
+        if /%o/ =~ path
+          if params.key? :optional_path
+            path.sub!("%o",params[:optional_path].to_s)
+          else
+            path.sub!("/%o","")
+          end
+        end
         extend_expire()
         __send__ http_method, path, params
       end
