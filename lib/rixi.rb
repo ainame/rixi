@@ -5,33 +5,33 @@ require 'json'
 
 class Rixi
   class APIError < StandardError
-    attr_reader :response    
+    attr_reader :response
     def initialize(msg, response = nil)
       super(msg)
       @response = response
     end
   end
-  
+
   attr_reader :consumer_key, :consumer_secret, :redirect_uri, :token, :client
-  
+
   SITE = 'http://api.mixi-platform.com'
   AUTH_URL ='https://mixi.jp/connect_authorize.pl'
   TOKEN_URL ='https://secure.mixi-platform.com/2/token'
-  
+
   def initialize(params = { })
     if params[:consumer_key] == nil && params[:consumer_secret] == nil
       raise "Rixi needs a consumer_key or consumer_secret."
     end
-    
+
     @consumer_key    = params.delete :consumer_key
     @consumer_secret = params.delete :consumer_secret
     @redirect_uri    = params.delete :redirect_uri
     @scope           = scope_to_query(params.delete(:scope))
-    
+
     params.merge!({
       :site => SITE,
       :authorize_url => AUTH_URL,
-      :token_url => TOKEN_URL    
+      :token_url => TOKEN_URL
     })
     @client = OAuth2::Client.new(
           @consumer_key,
@@ -39,7 +39,7 @@ class Rixi
           params
     )
   end
-  
+
   #スコープ未設定の時はとりあえずプロフィールだけで
   def scope_to_query(scope)
     if scope.kind_of?(Hash)
@@ -76,7 +76,7 @@ class Rixi
   # 手抜き実装のため、長いメソッド名の乱立で非常に汚いです
   # メソッド名は適当なので好きなように変えて使ってください
   # %s の部分が各種メソッドの引数になります
-  # 
+  #
   # 次期バージョンが出来るとするならAPIの種類毎に
   # モジュールに切り分けて実装したいです。
   #
@@ -127,7 +127,7 @@ class Rixi
       create_myspot         /2/spots/%s/@self                         post
       delete_myspot         /2/spots/%s/@self                         delete
       get_checkins          /2/checkins/%s/%s                         get
-      get_checkin           /2/checkins/%s/@self/%s                   get 
+      get_checkin           /2/checkins/%s/@self/%s                   get
       checkin               /2/checkins/%s                            post_multipart
       checkin_with_photo    /2/checkins/%s                            post_multipart
       diary                 /2/diary/articles/@me/@self               post_multipart
@@ -143,7 +143,7 @@ class Rixi
       delete_people_image   /2/people/images/%s/@self/%s              delete
     ".strip.split("\n").map {|l| l.strip.split(/\s+/)}
   end
- 
+
   api_settings.each do |api|
     method_name, path, http_method = *api
     http_method ||= 'get'
@@ -218,13 +218,13 @@ class Rixi
       content_type = "application/json"
       body = params[:json].to_json
     end
-    
+
     parse_response(@token.post(path,{
                                  :headers => {
-                                   :content_type  => content_type,                         
+                                   :content_type  => content_type,
                                    :content_length => body.size.to_s
                                  },
-                                 :body => body}))                                 
+                                 :body => body}))
   end
 
   def delete(path, params = { })
@@ -238,7 +238,7 @@ class Rixi
   # OAuth2::AccessTokenの仕様上破壊的代入が出来ないため...
   def extend_expire
     if @token.expired?
-      @token = @token.refresh! 
+      @token = @token.refresh!
     end
   end
 
@@ -247,7 +247,7 @@ class Rixi
     parse_response(@token.post("/2/voice/statuses/update",
                                :params => {:status => status.force_encoding("UTF-8")}))
   end
-  
+
   def parse_response(response)
     res = response.response.env
     case res[:status].to_i
@@ -277,7 +277,7 @@ EOF
       count = ""
       imgs = [imgs]
     end
-    
+
     attach = ""
     imgs.each do |img|
       tmp = <<"IMAGE".force_encoding("UTF-8")
@@ -296,5 +296,5 @@ IMAGE
   def end_boundary(time)
     "--boundary#{time}--"
   end
-  
+
 end

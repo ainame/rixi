@@ -9,8 +9,8 @@ enable :sessions
 # コンシューマキーとシークレットを設定
 # 設定ファイルにyaml形式でconsumer_keyとか書いてる
 configure do
-  config = YAML.load_file("setting.yml") 
-  @@mixi = Rixi.new( :consumer_key => config['consumer_key'], 
+  config = YAML.load_file("setting.yml")
+  @@mixi = Rixi.new( :consumer_key => config['consumer_key'],
                      :consumer_secret => config['consumer_secret'],
                      :redirect_uri => 'http://0.0.0.0:4567/callback',
                      :scope => "r_profile r_voice w_voice r_updates" )
@@ -22,7 +22,7 @@ get '/' do
     res = @@mixi.people "@me", "@self"
     "ようこそ<br />#{res['entry']['displayName']}さん！"+
     "<br /><a href='/logout'>ログアウト</a>"
-  else 
+  else
     "ようこそ！<br /><a href='/login'>ログイン</a>"
   end
 end
@@ -38,8 +38,8 @@ get '/logout' do
 end
 
 # コールバックでアクセストークンを取得（コールバックURLを指定）
-get '/callback' do  
-  #@@mixi.get_token(params["code"])                           
+get '/callback' do
+  #@@mixi.get_token(params["code"])
   session[:login] = true
   redirect '/'
 end

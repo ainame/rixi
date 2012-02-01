@@ -12,7 +12,7 @@ require 'open-uri'
 # 作成して起動しておく
 # --app.rb--
 # require 'sinatra'
-# get '/callback' do 
+# get '/callback' do
 #   "hoge"
 # end
 # ----------
@@ -20,11 +20,11 @@ require 'open-uri'
 #
 # 2. 次にirbを立ち上げてこのファイルをloadする
 # $ irb
-# ruby-1.9.2-p180 :001 > load "sample_safari.rb" 
+# ruby-1.9.2-p180 :001 > load "sample_safari.rb"
 #
 # 3.各種操作の実行が終わるまで暫く待つ。ブラウザ上に、
 # Sinatraのcallback画面表示されたらcodeが取得できる。
-# 
+#
 # 4.irb上で定数の「M」にrixiのインスタンスが代入されているので
 # 定数Mを通して各種APIを叩くメソッドを試す。
 # 例：
@@ -33,7 +33,7 @@ require 'open-uri'
 
 
 # scopeはハッシュ形式でも文字列を自前で連結してもOK
-scope = { 
+scope = {
   :r_profile => true,
   :w_profile => true,
   :r_profile_status => true,
@@ -56,12 +56,12 @@ scope = {
   :w_message => true,
   :w_diary => true,
   :r_checkin => true,
-  :w_checkin => true, 
+  :w_checkin => true,
   :r_updates => true
 }
 
-config = YAML.load_file("setting.yml") 
-M = Rixi.new( :consumer_key => config['consumer_key'], 
+config = YAML.load_file("setting.yml")
+M = Rixi.new( :consumer_key => config['consumer_key'],
               :consumer_secret => config['consumer_secret'],
               :redirect_uri => 'http://0.0.0.0:4567/callback',
               :scope => scope,
