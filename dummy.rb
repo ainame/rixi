@@ -1,9 +1,9 @@
 require 'sinatra'
 
-get '/' do 
+get '/' do
   "dammy page"
 end
 
-get '/callback' do 
+get '/callback' do
   "dammy page"
 end
