@@ -3,20 +3,11 @@ require 'cgi'
 require 'oauth2'
 require 'json'
 
-class Rixi
-  class APIError < StandardError
-    attr_reader :response
-    def initialize(msg, response = nil)
-      super(msg)
-      @response = response
-    end
-  end
+module Rixi
+  extend Config
+  include HTTPExtension
 
   attr_reader :consumer_key, :consumer_secret, :redirect_uri, :token, :client
-
-  SITE = 'http://api.mixi-platform.com'
-  AUTH_URL ='https://mixi.jp/connect_authorize.pl'
-  TOKEN_URL ='https://secure.mixi-platform.com/2/token'
 
   def initialize(params = { })
     if params[:consumer_key] == nil && params[:consumer_secret] == nil
@@ -29,9 +20,9 @@ class Rixi
     @scope           = scope_to_query(params.delete(:scope))
 
     params.merge!({
-      :site => SITE,
-      :authorize_url => AUTH_URL,
-      :token_url => TOKEN_URL
+      :site => self.site,
+      :authorize_url => self.auth_url,
+      :token_url => self.endpoint
     })
     @client = OAuth2::Client.new(
           @consumer_key,
@@ -158,7 +149,7 @@ class Rixi
           end
         end
         extend_expire()
-        __send__ http_method, path % args, params
+        parse_response(@token.__send__ http_method, path % args, params)
       end
     else
       define_method method_name do |*args|
@@ -171,68 +162,9 @@ class Rixi
           end
         end
         extend_expire()
-        __send__ http_method, path, params
+        parse_response(@token.__send__ http_method, path, params)
       end
     end
-  end
-
-  # define_methodで定義されたメソッドは最終的に
-  # これらのメソッドを呼ぶ
-  def get(path, params = { })
-    parse_response(@token.get(path, :params => params))
-  end
-
-  def post(path, params = { })
-    parse_response(@token.post(path,:params => params))
-  end
-
-  # 画像 は params[:image], タイトルは params[:title]で渡す
-  # 画像はバイナリ文字列で渡す
-  def post_image(path, params = { })
-    path += "?title="+ CGI.escape(params[:title]) if params[:title]
-    parse_response(@token.post(path,{
-                                 :headers => {
-                                   :content_type  => "image/jpeg",
-                                   :content_length => params[:image].size.to_s,
-                                 },:body   => params[:image]}))
-  end
-
-  # params[:json]はハッシュで渡して関数内でJSON化する
-  def post_json(path, params = { })
-    parse_response(@token.post(path,{
-                                 :headers => {
-                                   :content_type  => "application/json; charset=utf-8",
-                                   :content_length => params[:json].size.to_s
-                                 },:body   => params[:json]}))
-  end
-
-  # JSON形式＋写真を投稿することが可能なAPIについて
-  def post_multipart(path, params ={ })
-    if params[:image]
-      now = Time.now.strftime("%Y%m%d%H%M%S")
-      content_type = "multipart/form-data; boundary=boundary#{now}"
-      body  = application_json(now,params[:json])
-      body << attach_photos(now,params[:image])
-      body << end_boundary(now)
-    else
-      content_type = "application/json"
-      body = params[:json].to_json
-    end
-
-    parse_response(@token.post(path,{
-                                 :headers => {
-                                   :content_type  => content_type,
-                                   :content_length => body.size.to_s
-                                 },
-                                 :body => body}))
-  end
-
-  def delete(path, params = { })
-    @token.delete(path, :params => params).response.env[:status].to_s
-  end
-
-  def put(path, params = { })
-    parse_response(@token.put(path, :params => params))
   end
 
   # OAuth2::AccessTokenの仕様上破壊的代入が出来ないため...
