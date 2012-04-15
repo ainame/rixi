@@ -1,12 +1,12 @@
-# Template
+# Rixi
 
-TODO: Write a gem description
+Rixi is a simple rubygems to use mixi graph api in Ruby.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'template'
+    gem 'rixi'
 
 And then execute:
 
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install template
+    $ gem install rixi
 
 ## Usage
 
