@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 require 'cgi'
-require 'oauth2'
+5require 'oauth2'
 require 'json'
 
 module Rixi
   extend Config
-  include HTTPExtension
-
   attr_reader :consumer_key, :consumer_secret, :redirect_uri, :token, :client
 
   def initialize(params = { })
@@ -46,9 +44,17 @@ module Rixi
     @client.auth_code.authorize_url(:scope => @scope)
   end
 
+  # tokenにRixi::HTTPRequestExtensionをincludeして拡張します
+  def extend_token(token)
+    class << token
+      include HTTPRequestExtension
+    end
+  end
+
   #自分自身を返す
   def get_token(code)
     @token = @client.auth_code.get_token(code, {:redirect_uri => @redirect_uri}, {:mode => :header, :header_format => "OAuth %s"})
+    etend_token @token
     return self
   end
 
@@ -60,6 +66,7 @@ module Rixi
                                        :expires_at => Time.now.to_i+expires_in,
                                        :mode => :header,
                                        :header_format => "OAuth %s"})
+    extend_token @token
     return self
   end
 
@@ -174,11 +181,6 @@ module Rixi
     end
   end
 
-  # mixiボイスの投稿を楽にするため
-  def voice(status)
-    update_status(:status => status.force_encoding("UTF-8"))
-  end
-
   def parse_response(response)
     res = response.response.env
     case res[:status].to_i
@@ -188,44 +190,6 @@ module Rixi
     else
       JSON.parse(res[:body])
     end
-  end
-
-  # build request body
-  def application_json(time,json)
-    return <<-"EOF".force_encoding("UTF-8")
---boundary#{time}\r
-Content-Disposition: form-data; name="request"\r
-Content-Type: application/json\r
-\r
-#{json.to_json}\r
-EOF
-  end
-
-  def attach_photos(time, imgs)
-    if imgs.instance_of?(Array)
-      count = 1
-    else
-      count = ""
-      imgs = [imgs]
-    end
-
-    attach = ""
-    imgs.each do |img|
-      tmp = <<"IMAGE".force_encoding("UTF-8")
---boundary#{time}\r
-Content-Disposition: form-data; name="photo#{count}"; filename="#{time+count.to_s}.jpg"\r
-Content-Type: image/jpeg\r
-\r
-#{img}\r
-IMAGE
-      count+=1 if count != ""
-      attach << tmp
-    end
-    attach
-  end
-
-  def end_boundary(time)
-    "--boundary#{time}--"
   end
 
 end
