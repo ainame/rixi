@@ -133,7 +133,7 @@ class Rixi
       diary                 /2/diary/articles/@me/@self               post_multipart
       messages_inbox        /2/messages/%s/@inbox/%o                  get
       messages_outbox       /2/messages/%s/@outbox/%o                 get
-      create_message        /2/messages/%s/@self/@outbox              post
+      create_message        /2/messages/%s/@self/@outbox              post_json
       read_message          /2/messages/%s/@self/@inbox/%s            put
       delete_inbox          /2/messages/%s/@self/@inbox/%s            put
       delete_outbox         /2/messages/%s/@self/@outbox/%s           delete
